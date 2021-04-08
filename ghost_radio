@@ -1,0 +1,2781 @@
+package com.olegtimermanis.ghost_radio;
+
+import android.annotation.SuppressLint;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
+import android.widget.Toast;
+
+/**
+ * An example full-screen activity that shows and hides the system UI (i.e.
+ * status bar and navigation/system bar) with user interaction.
+ */
+public class FullscreenActivity extends AppCompatActivity {
+    public int cellw;
+    public int cellh;
+    public int columnq=5;
+    public int linesq=4;
+    public int screenWidth;
+    public int screenHeight;
+
+    public ArrayList<Integer> list;
+    public ArrayList<Integer> list2;
+    public ArrayList<Integer> list3;
+    public ArrayList<Integer> list4;
+    public ArrayList<Integer> list5;
+
+    public String Str;
+    public String Str2;
+    public String Str3;
+    public String Str4;
+    public String Str5;
+
+    public String Str6;
+    public String Str7;
+    public String Str8;
+    public String Str9;
+    public ArrayList<Integer> list6;
+    public ArrayList<Integer> list7;
+    public ArrayList<Integer> list8;
+    public ArrayList<Integer> list9;
+
+    public int ghostvisble = 1;// choosed by player
+    public int showtextcolor = 1;// choosed by player
+    public int turnghvoiceon = 1;
+    public int turnghsubon = 1;
+    public int game_speed = 20; //multiply *100ms
+    public int restart = 1;//
+    //
+    public int showghostalways_test = 0;
+    //special win and test
+    public int allghvisgranted = 0;
+    public int wingame = 0;
+
+    public int  plspeed = 50; //multiply game_speed*plspeed into ms for 1 move delay
+
+    public int ghmovetargetcell = 777;
+
+    public int plmove = 0;
+    public int ghmove = 0;
+    public int ghchancetostaypercent = 10;
+    public int aplmove = 0;
+    public int plhide = 0;
+    public int plholdinventory = 0;
+    public int inventory = 0;
+    public int ghostclose = 0;
+    public int ghostbite = 0;
+    public int plmovecounter = 0;
+    public String Strtop = "";
+    public String Strtoptemp = "";
+    public String Strghname= "";
+    public int hp = 0;
+    public int hpbonus = 0;
+    public int hpkicked = 0;
+    public int endgame = 0;
+    public int pausegame = 0;
+    public int pttpressed = 0;
+    public int plmovedrecently  = 0;
+    public int booksnum  = 0;
+    public int booksnumneed  = 0;
+
+    public int ghquant  = 1;
+    public int gametac  = 0;
+    public int specmove  = 0;
+    public int specmoveoldpos  = 0;
+    public int specmoveoflag  = 0;
+
+    public int lvlnum  = 0;
+    public int lvlnummax  = 0;
+    public int lvlq  = 11; //starts from 0
+    public String lvldescr  = "";
+    public String briefdescr  = "";
+    public int brieffirst  = 1;
+    public int money  = 0;
+    public String winmoneymessage  = "";
+    public  MediaPlayer mp;
+
+    public static final String APP_PREFERENCES = "mysettings";
+    public static final String APP_PREFERENCES_COUNTER = "sub";
+    public static final String APP_PREFERENCES_COUNTER2 = "voice";
+    public static final String APP_PREFERENCES_COUNTER3 = "lvl";
+    public static final String APP_PREFERENCES_COUNTER4 = "lvlmax";
+    public static final String APP_PREFERENCES_COUNTER5 = "restart";
+    public static final String APP_PREFERENCES_COUNTER6 = "money";
+    public static final String APP_PREFERENCES_COUNTER7 = "hpbonus";
+    public static final String APP_PREFERENCES_COUNTER8 = "wingame";
+    public static final String APP_PREFERENCES_COUNTER9 = "allghvisgranted";
+    public static final String APP_PREFERENCES_COUNTER10 = "ghostvisble";
+    public static final String APP_PREFERENCES_COUNTER11 = "showtextcolor";
+    public static final String APP_PREFERENCES_COUNTER12 = "game_speed";
+
+    private SharedPreferences mSettings;
+    //manual_text
+    public static final String m = "Collect the book from the bookshelf with the action button: it is invisible on the right down corner of the screen (do not click the bookshelf itself). Go back to the door and push action button to finish the level.\n" +
+            "Move with arrows, avoiding the ghost. It tells it's location in voice and subtitle at Ghost Radio.\n" +
+            "In menu you see battery quantity (hp -  health points), the number and the name of level, the number of nessesary books and how much have you collected.\n" +
+            "Select in menu (1 - on; 0- off):\n" +
+            "if you see ghost close, if you hear them and read their messages,\n" +
+            "if you see the text of the cell colour, if the fast respawn on fail enabled (no briefing on fail);\n" +
+            "customise the duration of game tac in seconds (1-2-3-4).\n" +
+            "Select level (open new by completing them).\n" +
+            "Read briefing, buy extra battery (hp) at the base for the money, earned in missions.\n" +
+            "After completing the game, you can buy the option to always see ghost for 999.\n" +
+            "_Ussualy if the ghost is in the same cell, and you are not hiding, you see a red dot and lose 1 battery.\n" +
+            "If you are hinding in the cupboard, the dot is violet. Only m-r Hand can pull you out, otherwise, it is safe.\n" +
+            "If the ghost is close, maybe you can see it like a ring, and the dot is yellow.\n" +
+            "If the ghost is away, the dot is often green.\n" +
+            "Menu button pauses the game; off, home and back buttons quit the game.\n" +
+            "_Watch out, there can be many ghosts and the level can morph.";
+
+    public static final String m2 = "Code and design by Oleg Timermanis. \n" +
+            "Free to use, if the author is mentioned. \n" +
+            "_\n" +
+            "Creative Commons images:\n" +
+            "https://freesvg.org/halloween-mask-vector-clip-art\n" +
+            "https://pxhere.com/en/photo/1612242\n" +
+            "epicioci Narcis Ciocan\n" +
+            "https://pixabay.com/photos/elevator-button-building-push-lift-1207812/\n" +
+            "https://snappygoat.com/b/0d78ae5de4dbab3f7df6fa69d5c3ad89ac77401b\n" +
+            "https://snappygoat.com/b/4e2d54cdf9733dca64088e5226280947e2b31b7f\n" +
+            "https://pxhere.com/en/photo/702573\n" +
+            "By Vectors Market \n" +
+            "https://thenounproject.com/term/cupboard/234663/\n" +
+            "https://pixy.org/888884/\n" +
+            " bmijnlieff, NL \n" +
+            "https://thenounproject.com/term/bookshelf/100649/\n" +
+            "Kokota, EE \n" +
+            "https://thenounproject.com/term/closed-door/885537/\n" +
+            "https://thenounproject.com/term/9v-battery/1807597/\n" +
+            "https://pixabay.com/illustrations/open-book-bible-book-icon-2268948/\n" +
+            "https://pixabay.com/illustrations/armchair-couch-chair-furniture-2683081/\n" +
+            "https://pixabay.com/vectors/bed-hotel-motel-accommodation-room-41042/\n";
+
+    /**
+     * Whether or not the system UI should be auto-hidden after
+     * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
+     */
+    private static final boolean AUTO_HIDE = true;
+
+    /**
+     * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
+     * user interaction before hiding the system UI.
+     */
+    private static final int AUTO_HIDE_DELAY_MILLIS = 350;
+
+    /**
+     * Some older devices needs a small delay between UI widget updates
+     * and a change of the status and navigation bar.
+     */
+    private static final int UI_ANIMATION_DELAY = 500;
+    private final Handler mHideHandler = new Handler();
+    private View mContentView;
+    private final Runnable mHidePart2Runnable = new Runnable() {
+        @SuppressLint("InlinedApi")
+        @Override
+        public void run() {
+            // Delayed removal of status and navigation bar
+
+            // Note that some of these constants are new as of API 16 (Jelly Bean)
+            // and API 19 (KitKat). It is safe to use them, as they are inlined
+            // at compile-time and do nothing on earlier devices.
+            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
+    };
+    private View mControlsView;
+    private final Runnable mShowPart2Runnable = new Runnable() {
+        @Override
+        public void run() {
+            // Delayed display of UI elements
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.show();
+            }
+            mControlsView.setVisibility(View.VISIBLE);
+        }
+    };
+    private boolean mVisible;
+    private final Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hide();
+        }
+    };
+    /**
+     * Touch listener to use for in-layout UI controls to delay hiding the
+     * system UI. This is to prevent the jarring behavior of controls going away
+     * while interacting with activity UI.
+     */
+    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            switch (motionEvent.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (AUTO_HIDE) {
+                        delayedHide(AUTO_HIDE_DELAY_MILLIS);
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    view.performClick();
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_fullscreen);
+
+        mVisible = true;
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mContentView = findViewById(R.id.fullscreen_content);
+
+        mSettings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+//saves on create, pause and resume
+        if (mSettings.contains(APP_PREFERENCES_COUNTER)) {
+            turnghsubon = mSettings.getInt(APP_PREFERENCES_COUNTER, 0);
+            turnghvoiceon = mSettings.getInt(APP_PREFERENCES_COUNTER2, 0);
+            lvlnum = mSettings.getInt(APP_PREFERENCES_COUNTER3, 0);
+            lvlnummax = mSettings.getInt(APP_PREFERENCES_COUNTER4, 0);
+            restart = mSettings.getInt(APP_PREFERENCES_COUNTER5, 0);
+            money = mSettings.getInt(APP_PREFERENCES_COUNTER6, 0);
+            hpbonus = mSettings.getInt(APP_PREFERENCES_COUNTER7, 0);
+            wingame = mSettings.getInt(APP_PREFERENCES_COUNTER8, 0);
+            allghvisgranted = mSettings.getInt(APP_PREFERENCES_COUNTER9, 0);
+            ghostvisble = mSettings.getInt(APP_PREFERENCES_COUNTER10, 0);
+            showtextcolor = mSettings.getInt(APP_PREFERENCES_COUNTER11, 0);
+            game_speed   = mSettings.getInt(APP_PREFERENCES_COUNTER12, 0);
+        }
+
+//decide cell size start
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        screenWidth = displaymetrics.widthPixels;
+        screenHeight = displaymetrics.heightPixels;
+
+        if (screenWidth < screenHeight) {
+            int temp = screenWidth;
+            screenWidth = screenHeight;
+            screenHeight = temp;
+        }
+
+
+        float fieldw = (float) screenWidth / 4 * 3;
+        float fieldh = (float) screenHeight / 16 * 15;
+
+        fieldw = fieldw / columnq;
+        fieldh = fieldh / linesq;
+
+        cellw = (int) fieldw;
+        cellh = (int) fieldh;
+//decide cell size end
+
+
+        lvlrun();
+
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        // Trigger the initial hide() shortly after the activity has been
+        // created, to briefly hint to the user that UI controls
+        // are available.
+        delayedHide(200);
+    }
+
+    private void toggle() {
+        if (mVisible) {
+            hide();
+        } else {
+            show();
+        }
+    }
+
+    private void hide() {
+        // Hide UI first
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+        mControlsView.setVisibility(View.GONE);
+        mVisible = false;
+
+        // Schedule a runnable to remove the status and navigation bar after a delay
+        mHideHandler.removeCallbacks(mShowPart2Runnable);
+        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    private void show() {
+        // Show the system bar
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        mVisible = true;
+
+        // Schedule a runnable to display UI elements after a delay
+        mHideHandler.removeCallbacks(mHidePart2Runnable);
+        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    /**
+     * Schedules a call to hide() in delay milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide(int delayMillis) {
+        mHideHandler.removeCallbacks(mHideRunnable);
+        mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+    public void drawfield() {
+
+        ImageView imageView = findViewById(R.id.down_go);
+        imageView.setImageResource(R.drawable.butd);
+        imageView.invalidate();
+
+        ghquant =1;
+        gametac=0;
+
+        hp = 1+hpbonus;
+        booksnum=0;
+        booksnumneed = 1;
+        specmoveoflag=0;
+
+        plhide = 0;
+        plholdinventory = 0;
+        inventory = 0;
+        ghmovetargetcell = 777;
+        Strtop = "";
+        Strtoptemp = "";
+
+        Strghname = "(Agh):_";
+
+        TextView textViewm = findViewById(R.id.manualtext);
+        textViewm.setText(m);
+        TextView textViewm2 = findViewById(R.id.textView_cred);
+        textViewm2.setText(m2);
+
+        if (lvlnum == 0) {
+
+            lvldescr = lvlnum + "_OLD_HOUSE._Find_books:_" + booksnumneed;
+            briefdescr = "Hello! Collect the book from the bookshelf with the action button: it is ussually invisible on the right down corner of the screen (do not click the bookshelf itself). Go back to the door and push action button to finish the level. \n" +
+                    "_In this level only action button is shown.\n" +
+                    "_Move with arrows, avoiding the ghost. It tells it's location in voice and subtitle at Ghost Radio.\n" +
+                    "_More info in menu/manual.\n" +
+                    "_Good luck! Oleg Timermanis, 2021";
+            //color
+            Str = "18 2 10 3 21 9 7 8 17 21 15 12 1 11 21 21 21 21 21 21";
+
+            //borders
+            Str2 = "0 0 0 3 0 0 3 0 3 0 0 0 0 3 0 2 2 2 2 0";
+
+            //items
+            Str3 = "5 0 0 0 0 0 0 0 0 0 0 0 0 3 0 0 0 0 0 10";
+
+            //player
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+
+            //ghost
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0";
+             //pos:_1 2 3 4 5 6 7 8 9 1011121314151617181920
+        }
+
+        if (lvlnum == 1) {
+            lvldescr = lvlnum + "_OLD_HOTEL._Find_books:_" + booksnumneed;
+            briefdescr = "For each extra book you receive money, you can buy additional battery in menu/base. It gives more chances. \n" +
+                    "_Since this level action button is invisible.\n" +
+                    "Special offer is available after completing the game.";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 4 4 4 0 0 4 4 4 0 0 4 4 4 0 0 0 0 0 0";
+            Str3 = "5 0 0 9 8 0 0 0 9 8 0 0 0 9 8 0 3 3 9 8";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0";
+        }
+
+        if (lvlnum == 2) {
+            ghquant =2;
+            lvldescr = lvlnum + "_PORT._Find_books:_" + booksnumneed;
+            briefdescr = "Press the action button to hide in the cupboard, and down arrow to move out. \n" +
+                    "Usually ghost cannot bite person in the cupboard.";
+            Str = "18 2 10 3 19 9 7 8 17 13 6 6 6 6 6 6 6 6 6 6";
+            Str2 = "0 0 0 0 0 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0";
+            Str3 = "5 0 0 0 3 1 0 0 1 3 0 0 0 0 0 0 0 0 0 0";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0";
+            Str6 = "0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str7 = "0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0";
+        }
+
+        if (lvlnum == 3) {
+            ghquant =2;
+            booksnumneed = 2;
+            lvldescr = lvlnum + "_TUNNEL._Find_books:_" + booksnumneed;
+            briefdescr = "If you take too much books, ghosts may wake up - think your way to escape.";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "4 4 4 4 0 0 4 4 4 4 4 4 4 4 0 0 0 0 0 0";
+            Str3 = "8 0 5 3 0 0 0 0 0 0 0 0 0 0 0 3 3 0 0 0";
+            Str4 = "0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str6 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str7 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+        }
+
+        if (lvlnum == 4) {
+            booksnumneed = 10;
+            lvldescr = lvlnum + "_LIBRARY_._Find_books:_" + booksnumneed;
+            briefdescr = "Damn many books";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 1 1 1 1 0 4 4 4 0 0 0 0 0 0 0 1 1 1 1";
+            Str3 = "3 3 3 3 3 5 0 0 0 1 1 0 0 0 3 3 3 3 3 3";
+            Str4 = "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1";
+        }
+
+        if (lvlnum == 5) {
+            lvldescr = lvlnum + "_STRIPES_._Find_books:_" + booksnumneed;
+            briefdescr = "Zebra?";
+            Str = "18 2 10 3 19 18 2 10 3 19 18 2 10 3 19 18 2 10 3 19";
+            Str2 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str3 = "5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3 0 0 0 3";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0";
+        }
+
+        if (lvlnum == 6) {
+            ghquant =2;
+            lvldescr = lvlnum + "_DUO._Find_books:_" + booksnumneed;
+            briefdescr = "Two of them!";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str3 = "5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3 0 0 0 3";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0";
+            Str6 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0";
+            Str7 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1";
+        }
+
+        if (lvlnum == 7) {
+            ghquant =2;
+            lvldescr = lvlnum + "_HAND._Find_books:_" + booksnumneed;
+            briefdescr = "M-r Hand can open the cupboard. Watch out!";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 0 0 0 0 0 0 1204 0 0 0 0 0 0 0 0 0 0 2 2";
+            Str3 = "5 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 3 3";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0";
+            Str6 = "0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str7 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0";
+        }
+
+        if (lvlnum == 8) {
+            ghquant =2;
+            lvldescr = lvlnum + "_WALLS._Find_books:_" + booksnumneed;
+            briefdescr = "Do not say the boggarts can move walls!";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0 0 0 1 0";
+            Str3 = "5 0 0 0 0 0 0 0 0 0 0 0 0 3 0 0 0 0 0 3";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0";
+            Str6 = "0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str7 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0";
+        }
+
+        if (lvlnum == 9) {
+            ghquant =2;
+            lvldescr = lvlnum + "_RING_._Find_books:_" + booksnumneed;
+            briefdescr = "Is it kind of stadium?";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 4 4 4 0 0 1 0 0 0 0 0 0 3 0 0 2 2 2 0";
+            Str3 = "5 0 0 0 0 0 0 3 3 0 0 0 0 0 0 0 0 0 0 0";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str6 = "0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str7 = "0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0";
+        }
+
+        if (lvlnum == 10) {
+            ghquant =3;
+            booksnumneed = 2;
+            lvldescr = lvlnum + "_TRIO._Find_books:_" + booksnumneed;
+            briefdescr = "Three ghosts are around.";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 0 0 0 0 0 2 0 2 0 0 0 0 0 0 0 1 0 1 0";
+            Str3 = "5 0 0 0 3 0 0 1 0 0 0 0 0 0 0 3 0 0 0 3";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1";
+
+            Str6 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1";
+            Str7 = "0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str8 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0";
+        }
+
+        if (lvlnum == 11) {
+            ghquant =4;
+            booksnumneed = 3;
+            lvldescr = lvlnum + "_FINAL._Find_books:_" + booksnumneed;
+            briefdescr = "Four ghosts. The floor is moving!";
+            Str = "18 2 10 3 19 9 7 8 17 13 15 12 1 11 6 14 5 16 4 20";
+            Str2 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str3 = "5 0 0 0 3 0 0 1 0 0 0 0 0 0 0 3 0 0 0 3";
+            Str4 = "1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str5 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1";
+
+            Str6 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1";
+            Str7 = "0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+            Str8 = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0";
+            Str9 = "0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0";
+        }
+
+        drawfield2();
+    }
+
+    public void drawfield2() {
+
+        list = new ArrayList<>();
+        for (String retval : Str.split(" ")) {
+            list.add(Integer.parseInt(retval));
+        }
+
+        list2 = new ArrayList<>();
+        for (String retval2 : Str2.split(" ")) {
+            list2.add(Integer.parseInt(retval2));
+        }
+
+        list3 = new ArrayList<>();
+        for (String retval : Str3.split(" ")) {
+            list3.add(Integer.parseInt(retval));
+        }
+
+        list4 = new ArrayList<>();
+        for (String retval : Str4.split(" ")) {
+            list4.add(Integer.parseInt(retval));
+        }
+
+        list5 = new ArrayList<>();
+        for (String retval : Str5.split(" ")) {
+            list5.add(Integer.parseInt(retval));
+        }
+
+        if (ghquant == 2) {
+            list6 = new ArrayList<>();
+            for (String retval : Str6.split(" ")) {
+                list6.add(Integer.parseInt(retval));
+            }
+
+            list7 = new ArrayList<>();
+            for (String retval : Str7.split(" ")) {
+                list7.add(Integer.parseInt(retval));
+            }
+        }
+
+        if (ghquant == 3) {
+            list6 = new ArrayList<>();
+            for (String retval : Str6.split(" ")) {
+                list6.add(Integer.parseInt(retval));
+            }
+
+            list7 = new ArrayList<>();
+            for (String retval : Str7.split(" ")) {
+                list7.add(Integer.parseInt(retval));
+            }
+
+            list8 = new ArrayList<>();
+            for (String retval : Str8.split(" ")) {
+                list8.add(Integer.parseInt(retval));
+            }
+        }
+
+        if (ghquant == 4) {
+            list6 = new ArrayList<>();
+            for (String retval : Str6.split(" ")) {
+                list6.add(Integer.parseInt(retval));
+            }
+
+            list7 = new ArrayList<>();
+            for (String retval : Str7.split(" ")) {
+                list7.add(Integer.parseInt(retval));
+            }
+
+            list8 = new ArrayList<>();
+            for (String retval : Str8.split(" ")) {
+                list8.add(Integer.parseInt(retval));
+            }
+
+            list9 = new ArrayList<>();
+            for (String retval : Str9.split(" ")) {
+                list9.add(Integer.parseInt(retval));
+            }
+        }
+
+
+        TextView textView = findViewById(R.id.topstring);
+        Strtop=lvldescr ;
+        textView.setText(Strtop);
+
+        if (restart ==0){
+            brieffirst  = 1;
+        }
+
+
+        if (brieffirst>0){
+            if (pausegame==0) {
+                onClick2m();
+            }
+
+            View but_lvl2 = findViewById(R.id.but_menu_from_br);
+            if (restart==0) {
+                but_lvl2.setEnabled(false);
+            }
+            else{
+                but_lvl2.setEnabled(true);
+            }
+
+            View bz = findViewById(R.id.brief_filed);
+            bz.setVisibility(View.VISIBLE);
+
+            brieffirst=0;
+
+            TextView textView2 = findViewById(R.id.brief0);
+            briefdescr = winmoneymessage   + briefdescr;
+            textView2.setText(briefdescr);
+            winmoneymessage = "";
+        }
+        else {
+
+            endgame = 0;
+            pausegame = 0;
+            gametimer();
+            //         playermovebeforepre();
+        }
+
+    }
+
+    public void drawd() {
+        TextView textView = findViewById(R.id.topstring);
+        textView.setText(Strtop);
+
+        TableLayout tableLayout = (TableLayout) findViewById(R.id.color_field);//table start
+        tableLayout.removeAllViews();
+        int colorcount = 0;
+        for (int i = 0; i < linesq; i++) {
+
+            TableRow tableRow = new TableRow(this);
+            TableRow.LayoutParams layoutParams =
+                    new TableRow.LayoutParams(cellw, cellh);
+
+            for (int j = 0; j < columnq; j++) {
+
+                TextView tv = new TextView(this);
+                int celltext = (int) screenHeight / 40;
+
+                int cellcolor = list.get(colorcount);
+
+                if (cellcolor == 1) {
+                    tv.setText(" aqua    ");
+                    tv.setBackgroundColor(Color.parseColor("#00FFFF"));
+                }
+                if (cellcolor == 2) {
+                    tv.setText(" navy    ");
+                    tv.setBackgroundColor(Color.parseColor("#000080"));
+                }
+                if (cellcolor == 3) {
+                    tv.setText(" lime    ");
+                    tv.setBackgroundColor(Color.parseColor("#bfff00"));
+                }
+                if (cellcolor == 4) {
+                    tv.setText(" olive   ");
+                    tv.setBackgroundColor(Color.parseColor("#808000"));
+                }
+                if (cellcolor == 5) {
+                    tv.setText(" teal    ");
+                    tv.setBackgroundColor(Color.parseColor("#008080"));
+                }
+
+                if (cellcolor == 6) {
+                    tv.setText(" blue    ");
+                    tv.setBackgroundColor(Color.parseColor("#0000ff"));
+                }
+                if (cellcolor == 7) {
+                    tv.setText(" green   ");
+                    tv.setBackgroundColor(Color.parseColor("#008000"));
+                }
+                if (cellcolor == 8) {
+                    tv.setText(" purple  ");
+                    tv.setBackgroundColor(Color.parseColor("#800080"));
+                }
+                if (cellcolor == 9) {
+                    tv.setText(" fuchsia ");
+                    tv.setBackgroundColor(Color.parseColor("#ca2c92"));
+                }
+                if (cellcolor == 10) {
+                    tv.setText(" brown   ");
+                    tv.setBackgroundColor(Color.parseColor("#964B00"));
+                }
+
+                if (cellcolor == 11) {
+                    tv.setText(" red     ");
+                    tv.setBackgroundColor(Color.parseColor("#FF0000"));
+                }
+                if (cellcolor == 12) {
+                    tv.setText(" yellow  ");
+                    tv.setBackgroundColor(Color.parseColor("#FFFF00"));
+                }
+                if (cellcolor == 13) {
+                    tv.setText(" salmon  ");
+                    tv.setBackgroundColor(Color.parseColor("#ff8c69"));
+                }
+                if (cellcolor == 14) {
+                    tv.setText(" white   ");
+                    tv.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                }
+                if (cellcolor == 15) {
+                    tv.setText(" pink    ");
+                    tv.setBackgroundColor(Color.parseColor("#FFC0CB"));
+                }
+
+                if (cellcolor == 16) {
+                    tv.setText(" orange  ");
+                    tv.setBackgroundColor(Color.parseColor("#ffa500"));
+                }
+                if (cellcolor == 17) {
+                    tv.setText(" wheat   ");
+                    tv.setBackgroundColor(Color.parseColor("#f5deb3"));
+                }
+                if (cellcolor == 18) {
+                    tv.setText(" lavender");
+                    tv.setBackgroundColor(Color.parseColor("#E6E6FA"));
+                }
+                if (cellcolor == 19) {
+                    tv.setText(" silver  ");
+                    tv.setBackgroundColor(Color.parseColor("#C0C0C0"));
+                }
+                if (cellcolor == 20) {
+                    tv.setText(" gray    ");
+                    tv.setBackgroundColor(Color.parseColor("#808080"));
+                }
+                if (cellcolor == 21) {
+                    tv.setText(" ");
+                    tv.setBackgroundColor(Color.parseColor("#000000"));
+                }
+//
+
+                tv.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+                tv.setGravity(Gravity.LEFT);
+                tv.setTextSize(celltext);
+                tv.setTextColor(Color.parseColor("#000000"));
+                tv.setLayoutParams(layoutParams);
+
+                if (showtextcolor < 1) {
+                    tv.setText("         ");
+                }
+                tableRow.addView(tv);
+                colorcount++;
+            }
+            tableLayout.addView(tableRow);
+        }//table end
+
+
+        TableLayout tableLayout2 = (TableLayout) findViewById(R.id.color_field2);//table2 start
+        tableLayout2.removeAllViews();
+        int colorcount2 = 0;
+        for (int i = 0; i < linesq; i++) {
+
+            TableRow tableRow = new TableRow(this);
+            TableRow.LayoutParams layoutParams =
+                    new TableRow.LayoutParams(cellw, cellh);
+
+            for (int j = 0; j < columnq; j++) {
+                int cellcolor2 = list2.get(colorcount2);
+
+                if (cellcolor2 == 0) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.empty);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 1) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.lw);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 2) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.uw);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 3) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.rw);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 4) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.dw);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 1234) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w1234);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 12) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w12);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 1004) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w1004);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 1204) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w1204);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 123) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w123);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 23) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w23);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 34) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w34);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 234) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w234);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor2 == 1034) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.w1034);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+
+                colorcount2++;
+            }
+            tableLayout2.addView(tableRow);
+        }//table2 end
+
+        TableLayout tableLayout3 = (TableLayout) findViewById(R.id.color_field3);//table3 start
+        tableLayout3.removeAllViews();
+        int colorcount3 = 0;
+        for (int i = 0; i < linesq; i++) {
+            TableRow tableRow = new TableRow(this);
+            TableRow.LayoutParams layoutParams =
+                    new TableRow.LayoutParams(cellw, cellh);
+
+            for (int j = 0; j < columnq; j++) {
+                int cellcolor3 = list3.get(colorcount3);
+                if (cellcolor3 == 0) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.empty);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 1) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.cupboard);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 2) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.cupboard_in);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 3) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.bookshelf);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 4) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.bookshelf_used);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 5) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.door);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 8) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.chair);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 9) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.bed);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor3 == 10) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.a_button);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                colorcount3++;
+            }
+            tableLayout3.addView(tableRow);
+        }//table3 end
+
+        TableLayout tableLayout4 = (TableLayout) findViewById(R.id.color_field4);//table4 start
+        tableLayout4.removeAllViews();
+        int colorcount4 = 0;
+        for (int i = 0; i < linesq; i++) {
+            TableRow tableRow = new TableRow(this);
+            TableRow.LayoutParams layoutParams =
+                    new TableRow.LayoutParams(cellw, cellh);
+
+            for (int j = 0; j < columnq; j++) {
+                int cellcolor4 = list4.get(colorcount4);
+                if (cellcolor4 == 0) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setImageResource(R.drawable.empty);
+                    imageView.setLayoutParams(layoutParams);
+                    tableRow.addView(imageView);
+                }
+
+                if (cellcolor4 == 1) {//show player if not hiding
+
+                    if (plhide == 1) {
+                        ImageView imageView = new ImageView(this);
+                        imageView.setImageResource(R.drawable.empty);
+                        imageView.setLayoutParams(layoutParams);
+                        tableRow.addView(imageView);
+                    } else {
+
+                        if (ghostbite == 1) {
+                            ImageView imageView = new ImageView(this);
+                            imageView.setImageResource(R.drawable.player_pain);
+                            imageView.setLayoutParams(layoutParams);
+                            tableRow.addView(imageView);
+                        } else {
+                            if (ghostclose == 1) {
+                                ImageView imageView = new ImageView(this);
+                                imageView.setImageResource(R.drawable.player_caref);
+                                imageView.setLayoutParams(layoutParams);
+                                tableRow.addView(imageView);
+                            } else {
+                                ImageView imageView = new ImageView(this);
+                                imageView.setImageResource(R.drawable.player1);
+                                imageView.setLayoutParams(layoutParams);
+                                tableRow.addView(imageView);
+                            }
+                        }
+                    }
+                }
+                colorcount4++;
+            }
+            tableLayout4.addView(tableRow);
+        }//table4 end
+
+
+
+        if (showghostalways_test == 1) {
+            for (int i = 0; i < list5.size(); i++) {
+                int z = list5.get(i);
+                if (z != 0 && z < 100) {
+                    z = z * 100;
+                }
+                if (z > 9999) {
+                    z = (int) z / 100;
+                }
+                list5.set(i, z);
+            }
+        }
+
+        TableLayout tableLayout5 = (TableLayout) findViewById(R.id.color_field5);//table5 start
+        tableLayout5.removeAllViews();
+
+        if (ghostvisble == 1) {
+            int colorcount5 = 0;
+            for (int i = 0; i < linesq; i++) {
+                TableRow tableRow = new TableRow(this);
+                TableRow.LayoutParams layoutParams =
+                        new TableRow.LayoutParams(cellw, cellh);
+
+                for (int j = 0; j < columnq; j++) {
+                    int cellcolor5 = list5.get(colorcount5);
+
+                    if (cellcolor5 == 0) {
+                        ImageView imageView = new ImageView(this);
+                        imageView.setImageResource(R.drawable.empty);
+                        imageView.setLayoutParams(layoutParams);
+                        tableRow.addView(imageView);
+                    }
+
+                    if (cellcolor5 == 100) {
+                        ImageView imageView = new ImageView(this);
+                        imageView.setImageResource(R.drawable.ghost);
+                        imageView.setLayoutParams(layoutParams);
+                        tableRow.addView(imageView);
+                    }
+
+                    colorcount5++;
+                }
+                tableLayout5.addView(tableRow);
+            }
+        }//table5 end
+
+
+
+    }
+
+    public void playermove() {
+
+        int plpos = list4.indexOf(1);
+        int newpos = plpos + plmove;
+        int rownum = (int) plpos / columnq; // 0-3
+        int newrownum = (int) newpos / columnq;
+
+        if (newpos < 0 || newpos >= columnq * linesq) {
+            newpos = plpos;
+        }
+
+        if (plmove == -1 && rownum != newrownum) {
+            newpos = plpos;
+        }
+
+        if (plmove == 1 && rownum != newrownum) {
+            newpos = plpos;
+        }
+
+        if (newpos != plpos) {//if target cell exist ->check for walls start
+            String startcellbord = String.valueOf(list2.get(plpos));
+            String newcellbord = String.valueOf(list2.get(newpos));
+
+            boolean got1 = startcellbord.contains("1");
+            boolean got2 = startcellbord.contains("2");
+            boolean got3 = startcellbord.contains("3");
+            boolean got4 = startcellbord.contains("4");
+
+            boolean ngot1 = newcellbord.contains("1");
+            boolean ngot2 = newcellbord.contains("2");
+            boolean ngot3 = newcellbord.contains("3");
+            boolean ngot4 = newcellbord.contains("4");
+
+            if (plmove == -1 && got1 == true) {//if we go left and start cell has left wall
+                newpos = plpos;
+            }
+            if (plmove == -1 && ngot3 == true) {//if we go left and target cell has right wall
+                newpos = plpos;
+            }
+
+            if (plmove == 1 && got3 == true) {
+                newpos = plpos;
+            }
+            if (plmove == 1 && ngot1 == true) {
+                newpos = plpos;
+            }
+
+            if (plmove == -columnq && got2 == true) {
+                newpos = plpos;
+            }
+            if (plmove == -columnq && ngot4 == true) {
+                newpos = plpos;
+            }
+
+            if (plmove == columnq && got4 == true) {
+                newpos = plpos;
+            }
+            if (plmove == columnq && ngot2 == true) {
+                newpos = plpos;
+            }
+
+        }//if target cell exist ->check for walls end
+
+        if (newpos != plpos) {
+            int z = list5.get(newpos);
+            if (z < 99) {
+                z = (int) z * 100;
+            }
+            list5.set(newpos, z);
+        }
+
+        if (aplmove != 0) {
+            list4.set(plpos, 0);
+            list4.set(newpos, 1);
+            aplmove = 0;
+            plmovecounter--;
+        }
+
+
+        //end
+        plmovecounter++;
+        playermoveafter();
+    }
+
+    public void playermovebefore() {
+        if (aplmove != 0) {
+            plmove = aplmove;
+            playermove();
+        } else {
+            if (plmovecounter == 0) {
+                plmove = -1;
+            }
+            if (plmovecounter == 1) {
+                plmove = 1;
+            }
+            if (plmovecounter == 2) {
+                plmove = -columnq;
+            }
+            if (plmovecounter == 3) {
+                plmove = columnq;
+            }
+
+            playermove();
+        }
+    }
+
+    public void playermoveafter() {
+        if (plmovecounter > 3) {
+            aplmove = 0;
+            plmove = 0;
+            plmovecounter = 0;
+
+
+            drawdbef();
+        } else {
+
+            playermovebefore();
+        }
+    }
+
+    public void playermovebeforepre() {
+
+        if (endgame +pausegame ==0) {
+            if (plmovedrecently  == 0){
+                for (int i = 0; i < list5.size(); i++) {//decrease all ghost
+                    int z = list5.get(i);
+                    if (z > 99) {
+                        z = (int) z / 100;
+                    }
+                    list5.set(i, z);
+                }
+
+                plmovedrecently=1;
+                playerm();
+                plmovecounter = 0;
+
+                if (ghquant>1) {
+                    for (int i = 0; i < list6.size(); i++) {
+                        if (list6.get(i) > list5.get(i)) {
+                            list5.set(i, list6.get(i));
+                        }
+                    }
+
+                    for (int i = 0; i < list7.size(); i++) {
+                        if (list7.get(i) > list5.get(i)) {
+                            list5.set(i, list7.get(i));
+                        }
+                    }
+
+
+                    if (ghquant>2){
+                        for (int i = 0; i < list8.size(); i++) {
+                            if (list8.get(i) > list5.get(i)) {
+                                list5.set(i, list8.get(i));
+                            }
+                        }
+                    }
+
+                    if (ghquant>3){
+                        for (int i = 0; i < list9.size(); i++) {
+                            if (list9.get(i) > list5.get(i)) {
+                                list5.set(i, list9.get(i));
+                            }
+                        }
+                    }
+
+                }
+
+                playermovebefore();
+            }}}
+
+    public void playerm() {
+        Handler handler = new Handler();
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {//do smth start
+                        playerm2();
+                    }//do smth end
+                });
+            }
+        }, game_speed*plspeed);//
+    }
+
+    public void playerm2(){
+        plmovedrecently = 0;
+    }
+
+    public void onClick(View view) {//action button
+        if (endgame +pausegame ==0) {
+            if (plholdinventory == 0) {//no inventory start
+                int plpos = list4.indexOf(1);//number of cell where is player
+                int itemplace = list3.get(plpos);
+
+                if (itemplace == 1) {
+                    if (plhide == 0) {//hide in cupboard
+                        plhide = 1;
+                        list3.set(plpos, 2);
+                        playermovebeforepre();
+                        ImageView imageView = findViewById(R.id.down_go);
+                        imageView.setImageResource(R.drawable.but_down_hide);
+                        imageView.invalidate();
+                    }}
+
+                if (itemplace == 3) {//check the open bookshelf
+                    list3.set(plpos, 4);
+                    booksnum++;
+                    playermovebeforepre();
+                }
+
+                if (itemplace == 5) {//at the door if collected books
+                    if (booksnum>=booksnumneed ){
+                        win();
+                    }
+                }
+
+            }//no inventory end
+        }}
+
+    public void win(){
+        int z = booksnum - booksnumneed;
+
+        String z2 = "";
+
+        if (z>0) {
+            z2 = "Extra books income: "+z;
+            money = money+z;
+        }
+
+        winmoneymessage  = "You win!"+ System.getProperty("line.separator")+z2+
+                System.getProperty("line.separator")+"Next mission is ready:"+ System.getProperty("line.separator");
+
+        if (lvlnum==lvlq){
+            wingame =1;
+            winmoneymessage  = "You completed the game! "+ System.getProperty("line.separator")+z2+
+                    System.getProperty("line.separator")+"Choose level in_menu or try again: "+ System.getProperty("line.separator");
+
+        }
+
+        if (lvlnum==lvlnummax&&lvlnum<lvlq){
+            lvlnummax++;
+
+        }
+
+        if (lvlnum<lvlq){
+            lvlnum++;
+        }
+
+        TextView textView = findViewById(R.id.topstring);
+        Strtop="WIN_";
+        textView.setText(Strtop);
+
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt(APP_PREFERENCES_COUNTER, turnghsubon );
+        editor.putInt(APP_PREFERENCES_COUNTER2, turnghvoiceon  );
+        editor.putInt(APP_PREFERENCES_COUNTER3, lvlnum  );
+        editor.putInt(APP_PREFERENCES_COUNTER4, lvlnummax  );
+        editor.putInt(APP_PREFERENCES_COUNTER5, restart  );
+        editor.putInt(APP_PREFERENCES_COUNTER6, money  );
+        editor.putInt(APP_PREFERENCES_COUNTER7, hpbonus  );
+        editor.putInt(APP_PREFERENCES_COUNTER8, wingame  );
+        editor.putInt(APP_PREFERENCES_COUNTER9, allghvisgranted  );
+        editor.putInt(APP_PREFERENCES_COUNTER10, ghostvisble  );
+        editor.putInt(APP_PREFERENCES_COUNTER11, showtextcolor  );
+        editor.putInt(APP_PREFERENCES_COUNTER12, game_speed  );
+        editor.apply();
+
+        lvlrun();
+    }
+
+    public void onClick2(View view) {//PTT menu
+        onClick2m();
+    }
+
+    public void onClick2m() {
+        if  (pttpressed == 0) {
+            if (pausegame==0) {
+                pausegame = 1;
+                mpr();
+
+                TextView textView = findViewById(R.id.topstring);
+                Strtop=lvldescr ;
+                textView.setText(Strtop);
+
+                menuupd();
+
+
+                View bz = findViewById(R.id.menu_field);
+                bz.setVisibility(View.VISIBLE);
+            }
+            else{
+                pausegame = 0;
+                gametimer();
+                View bz = findViewById(R.id.menu_field);
+                bz.setVisibility(View.GONE);
+                mpr();
+            }
+        }
+    }
+
+    public void mpr() {
+        Handler handler = new Handler();
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {//do smth start
+                        mpr2();
+                    }//do smth end
+                });
+            }
+        }, 500);//
+    }
+
+    public void mpr2(){
+        pttpressed = 0;
+    }
+
+    public void onClickl(View view) {
+        aplmove = -1;
+        if (plhide==0){
+            playermovebeforepre();
+        }
+    }
+
+    public void menuupd(){
+        TextView textView = findViewById(R.id.ghvistext);
+        textView.setText(String.valueOf(ghostvisble));
+
+        TextView textView2 = findViewById(R.id.bookcollectnumtext);
+        textView2.setText(String.valueOf(booksnum));
+
+        TextView textView3 = findViewById(R.id.hptext);
+        textView3.setText(String.valueOf(hp));
+
+        TextView textView4 = findViewById(R.id.ghvistext2);
+        textView4.setText(String.valueOf(showghostalways_test));
+        View buttonalwseegh = findViewById(R.id.but_gh_vis2);
+        if (allghvisgranted==0) {
+            buttonalwseegh.setEnabled(false);
+        }
+        else{
+            buttonalwseegh.setEnabled(true);
+        }
+
+        TextView textView5 = findViewById(R.id.ghvistext3);
+        textView5.setText(String.valueOf(turnghvoiceon));
+
+        TextView textView6 = findViewById(R.id.ghvistext4);
+        textView6.setText(String.valueOf(turnghsubon ));
+
+        TextView textView7 = findViewById(R.id.ghvistext5);
+        textView7.setText(String.valueOf(showtextcolor));
+
+        TextView textView8 = findViewById(R.id.ghvistext6);
+        textView8.setText(String.valueOf(game_speed/10));
+
+        TextView textView9 = findViewById(R.id.ghvistext7);
+        textView9.setText(String.valueOf(restart));
+
+        View buttonemtyinv = findViewById(R.id.but_invent);
+        if (inventory==0) {
+            buttonemtyinv.setEnabled(false);
+        }
+        else{
+            buttonemtyinv.setEnabled(true);
+        }
+        TextView textView10 = findViewById(R.id.textinv);
+        textView10.setText(String.valueOf(plholdinventory));
+
+
+    }
+
+    public void onClickr(View view) {
+        aplmove = 1;
+        if (plhide==0){
+            playermovebeforepre();
+        }
+    }
+
+    public void onClicku(View view) {
+        aplmove = -columnq;
+        if (plhide==0){
+            playermovebeforepre();
+        }
+    }
+
+    public void onClickd(View view) {//go down and exit cupboard
+        aplmove = columnq;
+        if (plhide==0){
+            playermovebeforepre();
+        }
+        else{//if plhide==1 start
+
+            int plpos = list4.indexOf(1);//number of cell where is player
+            int cupboardplace = list3.get(plpos);
+            if (cupboardplace == 2) {
+
+                ImageView imageView = findViewById(R.id.down_go);
+                imageView.setImageResource(R.drawable.butd);
+                imageView.invalidate();
+                plhide = 0;
+                list3.set(plpos, 1);
+                aplmove = 0;
+                playermovebeforepre();
+
+            }
+
+        }//if plhide==1 end
+    }
+
+    public void drawdbef() {
+        if (plholdinventory ==0){
+            ImageView imageView = findViewById(R.id.button_pic2);
+            imageView.setImageResource(R.drawable.screw);
+            imageView.invalidate();
+        }
+
+
+        int plpos = list4.indexOf(1);
+        int ghplace = list5.get(plpos);
+
+        if (plhide==0 && ghplace>0) {//if player is not hiding and the ghost is in the same place
+            ghostbite = 1;
+            ghostbitemet();
+        }
+        else {
+
+            if (plhide==1 && ghplace>0) {//if player IS  hiding and the ghost is in the same place
+                ghostclose = 0;
+                ghostbite =0;
+                ghostherehidemet();
+            }
+
+            else{//if player is not hiding and the ghost is close
+                Integer i = Collections.max(list5);
+                if (i > 99) {
+                    ghostclose = 1;
+                    ghostbite =0;
+                    ghostclosemet();
+                } else {//if player is not hiding and the ghost is far
+                    ghostclose = 0;
+                    ghostbite =0;
+                    ImageView imageView = findViewById(R.id.button_pic);
+                    imageView.setImageResource(R.drawable.default_button_pic);
+                    imageView.invalidate();
+
+                }}}
+        drawd();
+    }
+
+    public void ghostclosemet() {
+        ImageView imageView = findViewById(R.id.button_pic);
+        imageView.setImageResource(R.drawable.yel_dot);
+        imageView.invalidate();
+    }
+
+    public void ghostbitemet() {
+        ImageView imageView = findViewById(R.id.button_pic);
+        imageView.setImageResource(R.drawable.red_dot);
+        imageView.invalidate();
+
+        if (hpkicked==0) {
+            hp--;
+            if (hp <= 0) {
+                winmoneymessage = "";
+                endgame();
+            }
+            else {
+                hpkicked = 1;
+                playerhit();
+            }
+        }
+    }
+
+    public void endgame() {
+        TextView textView = findViewById(R.id.topstring);
+        Strtop="FAIL_";
+        textView.setText(Strtop);
+
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt(APP_PREFERENCES_COUNTER, turnghsubon );
+        editor.putInt(APP_PREFERENCES_COUNTER2, turnghvoiceon  );
+        editor.putInt(APP_PREFERENCES_COUNTER3, lvlnum  );
+        editor.putInt(APP_PREFERENCES_COUNTER4, lvlnummax  );
+        editor.putInt(APP_PREFERENCES_COUNTER5, restart  );
+        editor.putInt(APP_PREFERENCES_COUNTER6, money  );
+        editor.putInt(APP_PREFERENCES_COUNTER7, hpbonus  );
+        editor.putInt(APP_PREFERENCES_COUNTER8, wingame  );
+        editor.putInt(APP_PREFERENCES_COUNTER9, allghvisgranted  );
+        editor.putInt(APP_PREFERENCES_COUNTER10, ghostvisble  );
+        editor.putInt(APP_PREFERENCES_COUNTER11, showtextcolor  );
+        editor.putInt(APP_PREFERENCES_COUNTER12, game_speed  );
+        editor.apply();
+
+        ghmovetargetcell = 777;
+
+        pausegame=1;
+        endgame = 1;
+        endgame2();
+    }
+
+    public void endgame2() {
+        Handler handler = new Handler();
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {//do smth start
+                        drawfield();
+                    }//do smth end
+                });
+            }
+        }, game_speed*110);//
+
+    }
+
+
+
+    public void ghostherehidemet() {
+        ImageView imageView = findViewById(R.id.button_pic);
+        imageView.setImageResource(R.drawable.viol_dot);
+        imageView.invalidate();
+    }
+
+    public void playerhit() {
+        Handler handler = new Handler();
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {//do smth start
+                        playerhit2();
+                    }//do smth end
+                });
+            }
+        }, game_speed*plspeed);//
+    }
+
+    public void playerhit2(){
+        hpkicked = 0;
+    }
+
+    public void gametimer() {
+        if (endgame +pausegame ==0) {
+            Handler handler = new Handler();
+            Timer t = new Timer();
+            t.schedule(new TimerTask() {
+                public void run() {
+                    handler.post(new Runnable() {
+                        public void run() {//do smth start
+                            gametimer2();
+                        }//do smth end
+                    });
+                }
+            }, game_speed*100);// time in ms here
+
+        }}
+
+    public void gametimer2() {
+        if (endgame +pausegame ==0) {
+
+            if (gametac<ghquant){
+                gametac++;
+            }
+            else{
+                gametac=1;
+            }
+
+            if (gametac ==1){
+                Strghname = "(Agh):_";
+            }
+
+            if (gametac ==2){
+                Strghname = "(Ugh):_";
+            }
+
+            if (gametac ==3){
+                Strghname = "(Egh):_";
+            }
+
+            if (gametac ==4){
+                Strghname = "(Ogh):_";
+            }
+
+            moveghost();
+            gametimer();//loop OK
+        }
+    }
+
+    public void moveghost() {
+
+        if (endgame +pausegame ==0) {
+
+            if (ghquant>1){//if more than 1 ghost start
+                list5.clear();
+
+                if (gametac==1) {
+                    for (int i = 0; i < list6.size(); i++) {
+                        list5.add( list6.get(i));
+                    }
+                }
+
+                if (gametac==2) {
+                    for (int i = 0; i < list7.size(); i++) {
+                        list5.add( list7.get(i));
+                    }
+                }
+
+                if (gametac==3) {
+                    for (int i = 0; i < list8.size(); i++) {
+                        list5.add( list8.get(i));
+                    }
+                }
+
+                if (gametac==4) {
+                    for (int i = 0; i < list9.size(); i++) {
+                        list5.add( list9.get(i));
+                    }
+                }
+            }//if more than 1 ghost end
+
+            int ghpos = list5.indexOf(1);
+            int ghpos2 = list5.indexOf(1*100);
+
+            if (ghpos==-1 && ghpos2 ==-1){//to save from array break
+                ghpos =0;
+            }
+            else{
+                if (ghpos2>=0)
+                    ghpos=ghpos2;
+            }
+
+            if (ghmovetargetcell==777){
+                ghmovetargetcell = ghpos;
+            }
+            specmoveoldpos=ghpos;
+            specmove=0;
+            ghmove = 0;
+
+
+
+            //       playermovebeforepre();
+            specialmove();
+        }
+
+    }
+
+    public void ghoststay() {
+        int a = 1; // from
+        int b = 100; // to
+        int z = a + (int) (Math.random() * b);
+
+        int ghpos = list5.indexOf(1);
+        int ghpos2 = list5.indexOf(1 * 100);
+
+        if (ghpos == -1 && ghpos2 == -1) {//to save from array break
+            ghpos = 0;
+        } else {
+            if (ghpos2 >= 0)
+                ghpos = ghpos2;
+        }
+
+        if (specmove  == 1) {
+            z=z+101;
+        }
+
+        if (z<ghchancetostaypercent) {
+            if (specmove  == 0) {
+                Strtoptemp = "STAY_";
+            }
+            ghmovetargetcell = ghpos;
+            list5.clear();
+            for (int i = 0; i <list.size(); i++) {
+                list5.add(0);
+            }
+            list5.set(ghmovetargetcell , 1);
+
+            if (ghquant>1) {
+                if (gametac == 1) {
+                    list6.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list6.add(list5.get(i));
+                    }
+                }
+                if (gametac == 2) {
+                    list7.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list7.add(list5.get(i));
+                    }
+                }
+
+                if (gametac == 3) {
+                    list8.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list8.add(list5.get(i));
+                    }
+                }
+
+                if (gametac == 4) {
+                    list9.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list9.add(list5.get(i));
+                    }
+                }
+
+            }
+
+            specmoveoldpos=0;
+            specmove  = 0;
+            ghostclaim();
+            ghmove = 0;
+            playermovebeforepre();
+        }
+        else{
+            if (specmove  == 0) {
+                Strtoptemp = "MOVE_";
+            }
+            list5.clear();
+            for (int i = 0; i <list.size(); i++) {
+                list5.add(0);
+            }
+            list5.set(ghmovetargetcell , 1);
+
+            if (ghquant>1) {
+                if (gametac == 1) {
+                    list6.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list6.add(list5.get(i));
+                    }
+                }
+                if (gametac == 2) {
+                    list7.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list7.add(list5.get(i));
+                    }
+                }
+
+                if (gametac == 3) {
+                    list8.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list8.add(list5.get(i));
+                    }
+                }
+
+                if (gametac == 4) {
+                    list9.clear();
+                    for (int i = 0; i < list5.size(); i++) {
+                        list9.add(list5.get(i));
+                    }
+                }
+
+            }
+
+            ghostclaim();
+            ghmove = 0;
+            playermovebeforepre();
+        }
+    }
+
+    public void ghostclaim() {
+
+
+        int ghpos = list5.indexOf(1);
+        int ghpos2 = list5.indexOf(1*100);
+
+        if (ghpos==-1 && ghpos2 ==-1){//to save from array break
+            ghpos =0;
+        }
+        else{
+            if (ghpos2>=0)
+                ghpos=ghpos2;
+        }
+
+        ghostclaim2();
+    }
+
+    public void ghostclaim2() {
+        Strtop ="";
+        int zex = list.get(ghmovetargetcell);
+
+        if (zex==1){
+            Strtop ="AQUA";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.aqua);
+                mp.start();
+            }}
+        if (zex==2){
+            Strtop ="NAVY";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.navy);
+                mp.start();
+            }}
+        if (zex==3){
+            Strtop ="LIME";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.lime);
+                mp.start();
+            }}
+        if (zex==4){
+            Strtop ="OLIVE";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.olive);
+                mp.start();
+            }}
+        if (zex==5){
+            Strtop ="TEAL";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.teal);
+                mp.start();
+            }}
+
+        if (zex==6){
+            Strtop ="BLUE";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.blue);
+                mp.start();
+            }}
+        if (zex==7){
+            Strtop ="GREEN";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.green);
+                mp.start();
+            }}
+        if (zex==8){
+            Strtop ="PURPLE";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.purple);
+                mp.start();
+            }}
+        if (zex==9){
+            Strtop ="FUCHSIA";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.fuchsia);
+                mp.start();
+            }}
+        if (zex==10){
+            Strtop ="BROWN";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.brown);
+                mp.start();
+            }}
+
+        if (zex==11){
+            Strtop ="RED";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.red);
+                mp.start();
+            }}
+        if (zex==12){
+            Strtop ="YELLOW";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.yellow);
+                mp.start();
+            }}
+        if (zex==13){
+            Strtop ="SALMON";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.salmon);
+                mp.start();
+            }}
+        if (zex==14){
+            Strtop ="WHITE";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.white);
+                mp.start();
+            }}
+        if (zex==15){
+            Strtop ="PINK";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.pink);
+                mp.start();
+            }}
+
+        if (zex==16){
+            Strtop ="ORANGE";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.orange);
+                mp.start();
+            }}
+        if (zex==17){
+            Strtop ="WHEAT";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.wheat);
+                mp.start();
+            }}
+        if (zex==18){
+            Strtop ="LAVENDER";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.lavender);
+                mp.start();
+            }}
+        if (zex==19){
+            Strtop ="SILVER";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.silver);
+                mp.start();
+            }}
+        if (zex==20){
+            Strtop ="GRAY";
+            if (turnghvoiceon==1){
+                mp = MediaPlayer.create(this, R.raw.gray);
+                mp.start();
+            }}
+
+
+        Strtop =  Strghname +  Strtoptemp+ Strtop;
+        TextView textView = findViewById(R.id.topstring);
+
+        if (turnghsubon==0){
+            Strtop="";
+        }
+
+        textView.setText(Strtop);
+
+        if (turnghvoiceon==1){
+            mpkill1();
+        }
+
+    }
+
+    public void mpkill1() {
+        Handler handler = new Handler();
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {//do smth start
+                        mpkill2();
+                    }//do smth end
+                });
+            }
+        }, 700);//
+    }
+
+    public void mpkill2() {
+        Strtoptemp="";
+        ghmovetargetcell = 777;
+        mp.release();
+        mp = null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mp != null) mp.release();
+    }
+
+
+    public void moveghost2() {
+        int a = 1; // from
+        int b = 4; // to
+        int z = a + (int) (Math.random() * b);
+
+        if (z == 1) {
+            ghmove = -1;
+        }
+        if (z == 2) {
+            ghmove = 1;
+        }
+        if (z == 3) {
+            ghmove = -columnq;
+        }
+        if (z == 4) {
+            ghmove = columnq;
+        }
+
+        moveghost3();
+    }
+
+    public void moveghost3() {//
+
+        int ghpos = list5.indexOf(1);
+        int ghpos2 = list5.indexOf(1*100);
+
+        if (ghpos==-1 && ghpos2 ==-1){//to save from array break
+            ghpos =0;
+        }
+        else{
+            if (ghpos2>=0)
+                ghpos=ghpos2;
+        }
+
+        int newpos = ghpos + ghmove;
+        int rownum = (int) ghpos / columnq; // 0-3
+        int newrownum = (int) newpos / columnq;
+
+
+        if (newpos < 0 || newpos >= columnq * linesq) {
+            newpos = ghpos;
+        }
+
+        if (ghmove == -1 && rownum != newrownum) {
+            newpos = ghpos;
+        }
+
+        if (ghmove == 1 && rownum != newrownum) {
+            newpos = ghpos;
+        }
+
+        if (newpos != ghpos) {//if target cell exist ->check for walls start
+            String startcellbord = String.valueOf(list2.get(ghpos));
+            String newcellbord = String.valueOf(list2.get(newpos));
+
+            boolean got1 = startcellbord.contains("1");
+            boolean got2 = startcellbord.contains("2");
+            boolean got3 = startcellbord.contains("3");
+            boolean got4 = startcellbord.contains("4");
+
+            boolean ngot1 = newcellbord.contains("1");
+            boolean ngot2 = newcellbord.contains("2");
+            boolean ngot3 = newcellbord.contains("3");
+            boolean ngot4 = newcellbord.contains("4");
+
+            if (ghmove == -1 && got1 == true) {//if we go left and start cell has left wall
+                newpos = ghpos;
+            }
+            if (ghmove == -1 && ngot3 == true) {//if we go left and target cell has right wall
+                newpos = ghpos;
+            }
+
+            if (ghmove == 1 && got3 == true) {
+                newpos = ghpos;
+            }
+            if (ghmove == 1 && ngot1 == true) {
+                newpos = ghpos;
+            }
+
+            if (ghmove == -columnq && got2 == true) {
+                newpos = ghpos;
+            }
+            if (ghmove == -columnq && ngot4 == true) {
+                newpos = ghpos;
+            }
+
+            if (ghmove == columnq && got4 == true) {
+                newpos = ghpos;
+            }
+            if (ghmove == columnq && ngot2 == true) {
+                newpos = ghpos;
+            }
+
+        }//if target cell exist ->check for walls end
+
+        if (newpos != ghpos) {
+            ghmove=0;
+            ghmovetargetcell = newpos;
+            ghoststay();
+        }
+        else{
+            moveghost2();
+        }
+    }//
+
+    @Override
+    public void onBackPressed() {
+
+        endgame = 1;
+        this.finishAffinity();
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+
+        endgame = 1;
+        this.finishAffinity();
+    }
+
+    @Override
+    protected void onPause () {
+        super.onPause();
+
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt(APP_PREFERENCES_COUNTER, turnghsubon );
+        editor.putInt(APP_PREFERENCES_COUNTER2, turnghvoiceon  );
+        editor.putInt(APP_PREFERENCES_COUNTER3, lvlnum  );
+        editor.putInt(APP_PREFERENCES_COUNTER4, lvlnummax  );
+        editor.putInt(APP_PREFERENCES_COUNTER5, restart  );
+        editor.putInt(APP_PREFERENCES_COUNTER6, money  );
+        editor.putInt(APP_PREFERENCES_COUNTER7, hpbonus  );
+        editor.putInt(APP_PREFERENCES_COUNTER8, wingame  );
+        editor.putInt(APP_PREFERENCES_COUNTER9, allghvisgranted  );
+        editor.putInt(APP_PREFERENCES_COUNTER10, ghostvisble  );
+        editor.putInt(APP_PREFERENCES_COUNTER11, showtextcolor  );
+        editor.putInt(APP_PREFERENCES_COUNTER12, game_speed  );
+
+        editor.apply();
+
+        endgame = 1;
+        this.finishAffinity();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mSettings.contains(APP_PREFERENCES_COUNTER)) {
+            turnghsubon = mSettings.getInt(APP_PREFERENCES_COUNTER, 0);
+            turnghvoiceon = mSettings.getInt(APP_PREFERENCES_COUNTER2, 0);
+            lvlnum = mSettings.getInt(APP_PREFERENCES_COUNTER3, 0);
+            lvlnummax = mSettings.getInt(APP_PREFERENCES_COUNTER4, 0);
+            restart = mSettings.getInt(APP_PREFERENCES_COUNTER5, 0);
+            money = mSettings.getInt(APP_PREFERENCES_COUNTER6, 0);
+            hpbonus = mSettings.getInt(APP_PREFERENCES_COUNTER7, 0);
+            wingame = mSettings.getInt(APP_PREFERENCES_COUNTER8, 0);
+            allghvisgranted = mSettings.getInt(APP_PREFERENCES_COUNTER9, 0);
+            ghostvisble = mSettings.getInt(APP_PREFERENCES_COUNTER10, 0);
+            showtextcolor  = mSettings.getInt(APP_PREFERENCES_COUNTER11, 0);
+            game_speed = mSettings.getInt(APP_PREFERENCES_COUNTER12, 0);
+        }
+    }
+
+    public void set_gh_vis(View view) {
+        if (ghostvisble==1){
+            ghostvisble=0;
+
+            if (showghostalways_test==1){
+                showghostalways_test=0;
+
+                TextView textView = findViewById(R.id.ghvistext2);
+                textView.setText(String.valueOf(showghostalways_test));
+            }
+
+        }
+        else{
+            ghostvisble=1;
+        }
+        TextView textView = findViewById(R.id.ghvistext);
+        textView.setText(String.valueOf(ghostvisble));
+    }
+
+    public void set_gh_vis2(View view) {
+        if (showghostalways_test==1){
+            showghostalways_test=0;
+        }
+        else{
+            showghostalways_test=1;
+            ghostvisble=1;
+        }
+        TextView textView = findViewById(R.id.ghvistext2);
+        textView.setText(String.valueOf(showghostalways_test));
+
+        TextView textView2 = findViewById(R.id.ghvistext);
+        textView2.setText(String.valueOf(ghostvisble));
+    }
+
+    public void voice_on(View view) {
+        if (turnghvoiceon ==1){
+            turnghvoiceon =0;
+        }
+        else{
+            turnghvoiceon =1;
+        }
+        TextView textView = findViewById(R.id.ghvistext3);
+        textView.setText(String.valueOf(turnghvoiceon));
+    }
+
+    public void subs_on(View view) {
+        if (turnghsubon  ==1){
+            turnghsubon  =0;
+        }
+        else{
+            turnghsubon  =1;
+        }
+        TextView textView = findViewById(R.id.ghvistext4);
+        textView.setText(String.valueOf(turnghsubon ));
+    }
+
+    public void color_show(View view) {
+        if (showtextcolor   ==1){
+            showtextcolor   =0;
+        }
+        else{
+            showtextcolor   =1;
+        }
+        TextView textView = findViewById(R.id.ghvistext5);
+        textView.setText(String.valueOf(showtextcolor));
+    }
+
+    public void game_tac(View view) {
+        game_speed = game_speed +10;
+
+        if (game_speed>40){
+            game_speed   =10;
+        }
+
+        TextView textView = findViewById(R.id.ghvistext6);
+        textView.setText(String.valueOf(game_speed/10));
+    }
+
+    public void restart_on_fail(View view) {
+        if (restart   ==1){
+            restart   =0;
+        }
+        else{
+            restart   =1;
+        }
+
+        TextView textView = findViewById(R.id.ghvistext7);
+        textView.setText(String.valueOf(restart));
+    }
+
+    public void invent_met(View view) {
+        if (inventory>0){
+            plholdinventory = plholdinventory +1;
+
+            if (plholdinventory>5){
+                plholdinventory   =1;
+            }
+
+            TextView textView = findViewById(R.id.textinv);
+            textView.setText(String.valueOf(plholdinventory));
+        }}
+
+    public void level_choose(View view) {
+        pausegame = 1;
+
+        View but_lvl1 = findViewById(R.id.but_lvl1);
+        if (lvlnummax<1) {
+            but_lvl1.setEnabled(false);
+        }
+        else{
+            but_lvl1.setEnabled(true);
+        }
+
+        View but_lvl2 = findViewById(R.id.but_lvl2);
+        if (lvlnummax<2) {
+            but_lvl2.setEnabled(false);
+        }
+        else{
+            but_lvl2.setEnabled(true);
+        }
+
+        View but_lvl3 = findViewById(R.id.button8);
+        if (lvlnummax<3) {
+            but_lvl3.setEnabled(false);
+        }
+        else{
+            but_lvl3.setEnabled(true);
+        }
+
+        View but_lvl4 = findViewById(R.id.button9);
+        if (lvlnummax<4) {
+            but_lvl4.setEnabled(false);
+        }
+        else{
+            but_lvl4.setEnabled(true);
+        }
+
+        View but_lvl5 = findViewById(R.id.button10);
+        if (lvlnummax<5) {
+            but_lvl5.setEnabled(false);
+        }
+        else{
+            but_lvl5.setEnabled(true);
+        }
+
+        View but_lvl6 = findViewById(R.id.button11);
+        if (lvlnummax<6) {
+            but_lvl6.setEnabled(false);
+        }
+        else{
+            but_lvl6.setEnabled(true);
+        }
+
+        View but_lvl7 = findViewById(R.id.button12);
+        if (lvlnummax<7) {
+            but_lvl7.setEnabled(false);
+        }
+        else{
+            but_lvl7.setEnabled(true);
+        }
+
+        View but_lvl8 = findViewById(R.id.button13);
+        if (lvlnummax<8) {
+            but_lvl8.setEnabled(false);
+        }
+        else{
+            but_lvl8.setEnabled(true);
+        }
+
+        View but_lvl9 = findViewById(R.id.button14);
+        if (lvlnummax<9) {
+            but_lvl9.setEnabled(false);
+        }
+        else{
+            but_lvl9.setEnabled(true);
+        }
+
+        View but_lvl10 = findViewById(R.id.button15);
+        if (lvlnummax<10) {
+            but_lvl10.setEnabled(false);
+        }
+        else{
+            but_lvl10.setEnabled(true);
+        }
+
+        View but_lvl11 = findViewById(R.id.button16);
+        if (lvlnummax<11) {
+            but_lvl11.setEnabled(false);
+        }
+        else{
+            but_lvl11.setEnabled(true);
+        }
+
+
+        View bz = findViewById(R.id.lvl_select);
+        bz.setVisibility(View.VISIBLE);
+    }
+
+    public void met_manual(View view) {
+        View bz = findViewById(R.id.manual_field);
+        bz.setVisibility(View.VISIBLE);
+
+    }
+
+    public void met_readits(View view) {
+        View bz = findViewById(R.id.credits_field);
+        bz.setVisibility(View.VISIBLE);
+    }
+
+    public void met_awards(View view) {
+        View but_lvl2 = findViewById(R.id.but_menu_from_br);
+        if (restart==0) {
+            but_lvl2.setEnabled(false);
+        }
+        else{
+            but_lvl2.setEnabled(true);
+        }
+
+        View bz = findViewById(R.id.brief_filed);
+        bz.setVisibility(View.VISIBLE);
+
+    }
+
+    public void met_base(View view) {
+        if (lvlnummax>0) {
+
+            TextView textView = findViewById(R.id.moneyt);
+            textView.setText(String.valueOf(money));
+
+            View bz2 = findViewById(R.id.base_field);
+            bz2.setVisibility(View.VISIBLE);
+
+            TextView textView4 = findViewById(R.id.textView5);
+            textView4.setText(String.valueOf(hpbonus+1));
+
+            TextView textView5 = findViewById(R.id.textView8);
+            int z =  extrahpprice();
+            textView5.setText(String.valueOf(z));
+        }
+        else {
+            Toast.makeText(this, "Complete_level_0", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void exit_lvl_page_met(View view) {
+        View bz = findViewById(R.id.lvl_select);
+        bz.setVisibility(View.GONE);
+    }
+
+    public void but_lvl0_met(View view) {
+        lvlnum=0;
+        lvlrun();
+    }
+
+    public void but_lvl1_met(View view) {
+        lvlnum=1;
+        lvlrun();
+    }
+
+    public void but_lvl2_met(View view) {
+        lvlnum=2;
+        lvlrun();
+    }
+
+    public void but_lvl_met3(View view) {
+        lvlnum=3;
+        lvlrun();
+    }
+
+    public void but_lvl_met4(View view) {
+        lvlnum=4;
+        lvlrun();
+    }
+
+    public void but_lvl_met5(View view) {
+        lvlnum=5;
+        lvlrun();
+    }
+
+    public void but_lvl_met6(View view) {
+        lvlnum=6;
+        lvlrun();
+    }
+
+    public void but_lvl_met7(View view) {
+        lvlnum=7;
+        lvlrun();
+    }
+
+    public void but_lvl_met8(View view) {
+        lvlnum=8;
+        lvlrun();
+    }
+
+    public void but_lvl_met9(View view) {
+        lvlnum=9;
+        lvlrun();
+    }
+
+    public void but_lvl_met10(View view) {
+        lvlnum=10;
+        lvlrun();
+    }
+
+    public void but_lvl_met11(View view) {
+        lvlnum=11;
+        lvlrun();
+    }
+
+    public void lvlrun() {
+        View bz = findViewById(R.id.lvl_select);
+        bz.setVisibility(View.GONE);
+
+        View bz2 = findViewById(R.id.menu_field);
+        bz2.setVisibility(View.GONE);
+
+        brieffirst  = 1;
+        drawfield();
+    }
+
+    public void met_go_from_br(View view) {
+        View bz = findViewById(R.id.brief_filed);
+        bz.setVisibility(View.GONE);
+        View bz2 = findViewById(R.id.menu_field);
+        bz2.setVisibility(View.GONE);
+
+        endgame = 0;
+        pausegame = 0;
+        gametimer();
+        playermovebeforepre();
+    }
+
+    public void met_menu_from_br(View view) {
+        View bz = findViewById(R.id.brief_filed);
+        bz.setVisibility(View.GONE);
+
+        View bz2 = findViewById(R.id.menu_field);
+        bz2.setVisibility(View.VISIBLE);
+    }
+
+    public void base_exit_met(View view) {
+        View bz = findViewById(R.id.base_field);
+        bz.setVisibility(View.GONE);
+
+    }
+
+    public void   buy_cell(View view) {
+        int z =  extrahpprice();
+        if (hpbonus+1<3){
+            if (z>money){
+                Toast.makeText(this, "Need_more_money", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                hpbonus = hpbonus+1;
+                money = money-z;
+                View bz = findViewById(R.id.base_field);
+                bz.setVisibility(View.GONE);
+
+            }
+        }
+        else{
+            Toast.makeText(this, "MAX_CELL_REACHED", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public int extrahpprice() {
+        if (hpbonus+1<3){
+            if (hpbonus+1==1){
+
+                int z = 10;
+                return z;}
+            else{
+                int z = 10*3;
+                return z;
+            }
+        }
+        else{
+            return 0;
+        }
+    }
+
+    public void buy_alw_see_gh(View view){
+
+        if (allghvisgranted==0) {
+            if (wingame > 0 && money >= 999) {
+                money = money - 999;
+                View bz = findViewById(R.id.base_field);
+                bz.setVisibility(View.GONE);
+                allghvisgranted = 1;
+            } else {
+                Toast.makeText(this, "Pass the last level and collect 999 money", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else{
+            Toast.makeText(this, "Already_bought", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void  manual_f_close(View view){
+        View bz = findViewById(R.id.manual_field);
+        bz.setVisibility(View.GONE);
+    }
+
+    public void  cred_close(View view){
+        View bz = findViewById(R.id.credits_field);
+        bz.setVisibility(View.GONE);
+    }
+
+    public void specialmove() {
+
+        if (lvlnum==2&&gametac==1){
+            specmove=1;
+            Strtoptemp = "MOVE_";
+
+            if  (specmoveoldpos<=4&&specmoveoflag==0){
+                if (specmoveoldpos!=0) {
+                    ghmovetargetcell = specmoveoldpos - 1;
+                }
+                else{
+
+                }
+            }
+
+            if  (specmoveoldpos<=4&&specmoveoflag==1){
+                if (specmoveoldpos!=4) {
+                    ghmovetargetcell = specmoveoldpos + 1;
+                }
+                else{
+
+                }
+            }
+
+            ghoststay();
+        }
+
+        if (lvlnum==2&&gametac==2){
+            specmove=1;
+            Strtoptemp = "MOVE_";
+
+            if  (specmoveoldpos<=9&&specmoveoflag==0){
+                if (specmoveoldpos!=5) {
+                    ghmovetargetcell = specmoveoldpos - 1;
+                }
+                else{
+                    specmoveoflag = 1;
+                }
+            }
+
+            if  (specmoveoldpos<=9&&specmoveoflag==1){
+                if (specmoveoldpos!=9) {
+                    ghmovetargetcell = specmoveoldpos + 1;
+                }
+                else{
+                    specmoveoflag = 0;
+                }
+            }
+
+            ghoststay();
+        }
+
+        if (lvlnum==3&&booksnum<=booksnumneed){
+            specmove=1;
+            Strtoptemp = "SLEEP_";
+                    ghmovetargetcell = 0;
+            ghoststay();
+        }
+
+        if (lvlnum==7&&gametac==2){
+            specmove=1;
+            Strtoptemp = "MOVE_";
+            Strghname = "(Hand):_";
+
+            if (specmoveoldpos==17) {
+                ghmovetargetcell = 16;
+            }
+            if (specmoveoldpos==16) {
+                ghmovetargetcell = 11;
+            }
+            if (specmoveoldpos==11) {
+                ghmovetargetcell = 12;
+
+                if (plhide==1){
+                //if plhide==1 start
+
+                        ImageView imageView = findViewById(R.id.down_go);
+                        imageView.setImageResource(R.drawable.butd);
+                        imageView.invalidate();
+                        plhide = 0;
+                        list3.set(12, 1);
+
+                    Strtoptemp = "_FOUND!_";
+
+                }//if plhide==1 end
+            }
+            if (specmoveoldpos==12) {
+                ghmovetargetcell = 17;
+
+            }
+
+            ghoststay();
+        }
+
+        if (lvlnum==8&&gametac==2){
+            if (list2.get(6)==1204) {
+                list2.set(6, 0);
+            }
+            if (list2.get(6)==234) {
+                list2.set(6, 1204);
+            }
+            if (list2.get(6)==1034) {
+                list2.set(6, 234);
+            }
+            if (list2.get(6)==123) {
+                list2.set(6, 1034);
+            }
+            if (list2.get(6)==12) {
+                list2.set(6, 123);
+            }
+            if (list2.get(6)==1) {
+                list2.set(6, 12);
+            }
+            if (list2.get(6)==0) {
+                list2.set(6, 1);
+            }
+
+
+            if (list2.get(12)==1004||list2.get(12)==234) {
+                list2.set(12, 0);
+            }
+            if (list2.get(12)==1004&&list2.get(6)==234) {
+                list2.set(12, 23);
+            }
+            if (list2.get(12)==1004&&list2.get(6)!=234) {
+                list2.set(12, 1204);
+            }
+            if (list2.get(12)==34) {
+                list2.set(12, 1004);
+            }
+            if (list2.get(12)==0) {
+                list2.set(12, 34);
+            }
+
+
+        }
+
+        if (lvlnum==11&&gametac==4){
+            int z =  list.get(19);
+            int z2 =  list.get(0);
+            list.add(0,z);
+            list.remove(20);
+        }
+
+
+        if (specmove==0){ moveghost2(); }
+    }
+
+}
